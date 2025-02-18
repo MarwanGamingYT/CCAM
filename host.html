@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Host CCTV</title>
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Hosting Mode - Active</h2>
+        <div id="status">Connecting...</div>
+    </div>
+    <script>
+        const peer = new Peer('home-cctv-host', {
+            host: '0.peerjs.com',
+            port: 443,
+            secure: true,
+            path: '/'
+        });
+
+        peer.on('call', (call) => {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    call.answer(stream);
+                    document.getElementById('status').textContent = "Streaming active";
+                })
+                .catch(err => {
+                    console.error('Camera access denied:', err);
+                    document.getElementById('status').textContent = "Error: Camera access denied";
+                });
+        });
+
+        peer.on('error', (err) => {
+            console.error('PeerJS error:', err);
+            document.getElementById('status').textContent = "Connection error";
+        });
+    </script>
+</body>
+</html>
