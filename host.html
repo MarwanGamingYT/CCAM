@@ -8,7 +8,7 @@
 <body>
     <div class="container">
         <h2>Hosting Mode - Active</h2>
-        <div id="status">Connecting...</div>
+        <div id="status">Loading...</div>
     </div>
     <script>
         const peer = new Peer('home-cctv-host', {
@@ -18,22 +18,29 @@
             path: '/'
         });
 
-        peer.on('call', (call) => {
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then(stream => {
-                    call.answer(stream);
-                    document.getElementById('status').textContent = "Streaming active";
-                })
-                .catch(err => {
-                    console.error('Camera access denied:', err);
-                    document.getElementById('status').textContent = "Error: Camera access denied";
-                });
-        });
+        // Request camera access
+        async function startStreaming() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                document.getElementById('status').textContent = "Camera access granted. Waiting for viewer...";
 
-        peer.on('error', (err) => {
-            console.error('PeerJS error:', err);
-            document.getElementById('status').textContent = "Connection error";
-        });
+                peer.on('call', (call) => {
+                    call.answer(stream); // Send the stream to the viewer
+                    document.getElementById('status').textContent = "Streaming active";
+                });
+
+                peer.on('error', (err) => {
+                    console.error('PeerJS error:', err);
+                    document.getElementById('status').textContent = "Connection error";
+                });
+            } catch (error) {
+                console.error('Camera access denied:', error);
+                document.getElementById('status').textContent = "Error: Camera access denied. Please allow permissions.";
+            }
+        }
+
+        // Start the process
+        startStreaming();
     </script>
 </body>
 </html>
